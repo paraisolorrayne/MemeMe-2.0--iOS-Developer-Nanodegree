@@ -107,6 +107,14 @@ class MemeSceneViewController: UIViewController {
         editButton.imageView?.image? = (editButton.imageView?.image?.makeTintable())!
         editButton.imageView?.tintTo(color: color)
     }
+
+    private func dismissScene() {
+        topTextField.text = "TOP TEXT HERE"
+        bottomTextField.text = "BOTTOM TEXT HERE"
+        imageView.image = nil
+        changeColorButton(color: .white)
+        dismiss(animated: true, completion: nil)
+    }
     
     // MARK: Actions
     
@@ -120,27 +128,33 @@ class MemeSceneViewController: UIViewController {
     
     @IBAction func editAction(_ sender: Any) {
         // I will implement this function in the next version of this code
-        let alert = UIAlertController(title: "For now, this is not working.", message: "This functionality will be available on the next version.", preferredStyle: .alert)
+        let alert = UIAlertController(title: "For now, this is not working.",
+                                      message: "This functionality will be available on the next version.",
+                                      preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
         self.present(alert, animated: true)
     }
     
     @IBAction func cancelAction(_ sender: Any) {
-        topTextField.text = "TOP TEXT HERE"
-        bottomTextField.text = "BOTTOM TEXT HERE"
-        imageView.image = nil
-        changeColorButton(color: .white)
+        dismissScene()
     }
     
     @IBAction func shareAction(_ sender: Any) {
         
         let activityViewController = UIActivityViewController(activityItems: [generateMemedImage()], applicationActivities: nil)
         activityViewController.popoverPresentationController?.sourceView = self.view // so that iPads won't crash
-        
+        // present the view controller
         self.present(activityViewController, animated: true, completion: nil)
         activityViewController.completionWithItemsHandler = { (activityType, completed: Bool, returnedItems: [Any]?, error: Error?) in
             if completed {
-                let _ = MemeScene.Meme(topText: self.topTextField.text!, bottomText: self.bottomTextField.text!, originalImage: self.imageView.image!, memedImage: self.generateMemedImage())
+                
+                guard let meme = Meme(topText:self.topTextField.text!, bottomText: self.bottomTextField.text!, originalImage: self.imageView.image!, memeImage: self.generateMemedImage()) else {
+                    fatalError("Unable to instantiate meme")
+                }
+                
+                MemeList.sharedInstance.addMeme(meme: meme)
+                
+                self.dismissScene()
             }
         }
     }
